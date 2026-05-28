@@ -5,6 +5,12 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.2.1](https://github.com/ForeverAngry/rig-tokudo/compare/v0.2.0...v0.2.1) - 2026-05-28
+
+### Documentation
+
+- Sync README, ROADMAP, and AGENTS.md to v0.2.0 ([#2](https://github.com/ForeverAngry/rig-tokudo/pull/2))
+
 ## [0.2.0](https://github.com/ForeverAngry/rig-tokudo/compare/v0.1.0...v0.2.0) - 2026-05-28
 
 ### CI
