@@ -1,0 +1,79 @@
+[package]
+name = "rig-tokudo"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.89"
+license = "MIT OR Apache-2.0"
+description = "Cost-optimization decorator for Rig completion models: cache, compression, cascade routing, and provenance."
+repository = "https://github.com/ForeverAngry/rig-tokudo"
+readme = "README.md"
+keywords = ["rig", "llm", "cache", "router", "observability"]
+categories = ["api-bindings", "caching"]
+
+[dependencies]
+rig = { package = "rig-core", version = "0.37.0", default-features = false }
+thiserror = "2.0"
+tracing = "0.1"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+sha2 = "0.10"
+hex = "0.4"
+regex = "1"
+
+# Optional ecosystem integrations. Local path deps for in-tree development;
+# `version` is honored on publish.
+rig-tap = { version = "0.1", path = "../rig-tap", optional = true }
+rig-model-catalog = { version = "0.1", path = "../rig-model-catalog", optional = true, default-features = false, features = ["pricing"] }
+rig-memvid = { version = "0.2", path = "../rig-memvid", optional = true, default-features = false, features = ["lex"] }
+rig-retrieval-evals = { version = "0.2", path = "../rig-evals-rag", optional = true, default-features = false }
+
+[dev-dependencies]
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+proptest = "1.5"
+tracing-subscriber = { version = "0.3", default-features = false, features = ["registry", "fmt"] }
+
+[features]
+# Default-on observability and pricing align the decorator with the
+# companion-crate stack: `tap` adds rig_tap-compatible scalar fields, and
+# `model-catalog` fills USD estimates from the bundled pricing catalog.
+default = ["tap", "model-catalog"]
+
+# Observability: emit ObservabilityEvent via rig-tap on every call.
+tap = ["dep:rig-tap"]
+
+# Pull tokenizer + pricing data from rig-model-catalog for USD cost estimates.
+model-catalog = ["dep:rig-model-catalog"]
+
+# Semantic cache backed by any rig VectorStoreIndexDyn.
+cache-semantic = []
+
+# Plug rig-memvid in as the cache-semantic backend.
+cache-memvid = ["cache-semantic", "dep:rig-memvid"]
+
+# Dependency-free LLMLingua-style prompt compression adapter.
+compress-llmlingua = []
+
+# Train-free calibration-set router.
+route-predictive = []
+
+# Emit per-call lineage edges linking served responses to cache/provider sources.
+lineage = []
+
+# Quality-regression harness wired through rig-retrieval-evals.
+eval = ["dep:rig-retrieval-evals"]
+
+[lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+
+[lints.clippy]
+await_holding_lock = "deny"
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+panic_in_result_fn = "deny"
+indexing_slicing = "deny"
+unreachable = "deny"
+todo = "deny"
+unimplemented = "deny"
+dbg_macro = "forbid"

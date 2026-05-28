@@ -1,0 +1,20 @@
+{"id":"q-001","tags":["novel"],"prompt":"What is the capital of France?"}
+{"id":"q-002","tags":["novel"],"prompt":"Explain how photosynthesis works in one paragraph."}
+{"id":"q-003","tags":["repeat"],"prompt":"What is the capital of France?"}
+{"id":"q-004","tags":["novel"],"prompt":"Summarize the plot of Hamlet in three sentences."}
+{"id":"q-005","tags":["repeat"],"prompt":"Explain how photosynthesis works in one paragraph."}
+{"id":"q-006","tags":["novel"],"prompt":"List three benefits of unit testing."}
+{"id":"q-007","tags":["repeat"],"prompt":"What is the capital of France?"}
+{"id":"q-008","tags":["novel"],"prompt":"Convert 100 degrees Fahrenheit to Celsius and show the calculation."}
+{"id":"q-009","tags":["novel"],"prompt":"What is the time complexity of merge sort and why?"}
+{"id":"q-010","tags":["repeat"],"prompt":"List three benefits of unit testing."}
+{"id":"q-011","tags":["tool_call"],"prompt":"Call the weather tool for Tokyo and report the result."}
+{"id":"q-012","tags":["novel"],"prompt":"Write a haiku about a quiet forest."}
+{"id":"q-013","tags":["repeat"],"prompt":"Summarize the plot of Hamlet in three sentences."}
+{"id":"q-014","tags":["novel"],"prompt":"Compare REST and gRPC in two paragraphs."}
+{"id":"q-015","tags":["repeat"],"prompt":"What is the time complexity of merge sort and why?"}
+{"id":"q-016","tags":["novel"],"prompt":"Explain the CAP theorem and its practical implications."}
+{"id":"q-017","tags":["tool_call"],"prompt":"Look up the current price of TSLA via the stock tool."}
+{"id":"q-018","tags":["novel"],"prompt":"Describe how a hash table handles collisions with chaining."}
+{"id":"q-019","tags":["repeat"],"prompt":"List three benefits of unit testing."}
+{"id":"q-020","tags":["novel"],"prompt":"What is the difference between TCP and UDP?"}
