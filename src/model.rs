@@ -9,7 +9,7 @@
 //!    [`CachedCompletionResponse`] and return without calling the provider.
 //! 3. Apply the compressor.
 //! 4. Record the router's pre-call hint into [`Provenance`].
-//! 5. Forward to the wrapped [`CompletionModel`].
+//! 5. Forward to the wrapped [`rig::completion::CompletionModel`].
 //! 6. Run the validator on the raw response.
 //! 7. Write the response into the cache (skipped under
 //!    [`CachePolicy::NoStore`]).
@@ -31,7 +31,7 @@ use crate::traits::{
     NoCompressor, PassThroughRouter, Router, Validator,
 };
 
-/// Cost-optimization decorator around any [`CompletionModel`].
+/// Cost-optimization decorator around any [`rig::completion::CompletionModel`].
 ///
 /// Type parameters select the strategy for each pillar. Phase 1 defaults
 /// (`PassThroughRouter`, `NoCompressor`, `DefaultCacheKey`, `NoCache`,

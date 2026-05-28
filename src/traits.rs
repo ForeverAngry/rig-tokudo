@@ -113,7 +113,7 @@ pub trait Cache: Send + Sync {
 /// A cache that never returns a hit and never stores anything.
 ///
 /// The default backend for [`crate::OptimizedModel`] until a real cache is
-/// wired in via [`crate::OptimizedModel::with_cache`].
+/// wired in via [`crate::OptimizedModelBuilder::with_cache`].
 #[derive(Debug, Default, Clone, Copy)]
 pub struct NoCache;
 

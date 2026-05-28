@@ -1,7 +1,7 @@
 //! Phase 4 routing primitives: static cheap → strong cascade plus a small
 //! library of post-call validators.
 //!
-//! The [`StaticCascade`] dispatches the cheap leg first, runs a [`Validator`]
+//! The [`StaticCascade`] dispatches the cheap leg first, runs a [`crate::Validator`]
 //! against the raw provider response, and on rejection re-dispatches to the
 //! strong leg. The validators in [`validator`] cover the three patterns
 //! called out in the project plan: minimum-length, regex-match, and a

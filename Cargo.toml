@@ -10,6 +10,10 @@ readme = "README.md"
 keywords = ["rig", "llm", "cache", "router", "observability"]
 categories = ["api-bindings", "caching"]
 
+[[example]]
+name = "measure_savings"
+required-features = ["model-catalog"]
+
 [dependencies]
 rig = { package = "rig-core", version = "0.37.0", default-features = false }
 thiserror = "2.0"

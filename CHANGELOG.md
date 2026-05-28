@@ -5,6 +5,11 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Gate the `measure_savings` example on `model-catalog` and qualify strict
+  rustdoc links so no-default CI builds only compatible targets.
+
 ## [0.2.1](https://github.com/ForeverAngry/rig-tokudo/compare/v0.2.0...v0.2.1) - 2026-05-28
 
 ### Documentation
