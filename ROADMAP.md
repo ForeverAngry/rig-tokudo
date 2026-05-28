@@ -6,7 +6,7 @@
 the marketing-grade summary. For day-to-day conventions see
 [AGENTS.md](AGENTS.md).
 
-## Landed (v0.1)
+## Landed (v0.2.0)
 
 - **Phase 0–1**: bootstrap, lint policy, `OptimizedModel<M, R, C, K>`
   decorator shell, `TokudoError`, `TokudoOptions`, `Provenance`,
