@@ -22,12 +22,6 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ secrets.RELEASE_PLZ_TOKEN || secrets.GITHUB_TOKEN }}
-      - name: checkout companion path dependencies
-        run: |
-          git clone --depth=1 https://github.com/ForeverAngry/rig-tap ../rig-tap
-          git clone --depth=1 https://github.com/ForeverAngry/rig-model-meta ../rig-model-catalog
-          git clone --depth=1 https://github.com/ForeverAngry/rig-memvid ../rig-memvid
-          git clone --depth=1 https://github.com/ForeverAngry/rig-evals-rag ../rig-evals-rag
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Run release-plz release
@@ -50,12 +44,6 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ secrets.RELEASE_PLZ_TOKEN || secrets.GITHUB_TOKEN }}
-      - name: checkout companion path dependencies
-        run: |
-          git clone --depth=1 https://github.com/ForeverAngry/rig-tap ../rig-tap
-          git clone --depth=1 https://github.com/ForeverAngry/rig-model-meta ../rig-model-catalog
-          git clone --depth=1 https://github.com/ForeverAngry/rig-memvid ../rig-memvid
-          git clone --depth=1 https://github.com/ForeverAngry/rig-evals-rag ../rig-evals-rag
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Run release-plz release-pr

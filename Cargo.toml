@@ -22,10 +22,10 @@ regex = "1"
 
 # Optional ecosystem integrations. Local path deps for in-tree development;
 # `version` is honored on publish.
-rig-tap = { version = "0.1", path = "../rig-tap", optional = true }
-rig-model-catalog = { version = "0.1", path = "../rig-model-catalog", optional = true, default-features = false, features = ["pricing"] }
-rig-memvid = { version = "0.2", path = "../rig-memvid", optional = true, default-features = false, features = ["lex"] }
-rig-retrieval-evals = { version = "0.2", path = "../rig-evals-rag", optional = true, default-features = false }
+rig-tap = { version = "0.1", optional = true }
+rig-model-catalog = { version = "0.1", optional = true, default-features = false, features = ["pricing"] }
+rig-memvid = { version = "0.2", optional = true, default-features = false, features = ["lex"] }
+rig-retrieval-evals = { version = "0.2", optional = true, default-features = false }
 
 [dev-dependencies]
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }

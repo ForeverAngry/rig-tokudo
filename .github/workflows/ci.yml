@@ -16,12 +16,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: checkout companion path dependencies
-        run: |
-          git clone --depth=1 https://github.com/ForeverAngry/rig-tap ../rig-tap
-          git clone --depth=1 https://github.com/ForeverAngry/rig-model-meta ../rig-model-catalog
-          git clone --depth=1 https://github.com/ForeverAngry/rig-memvid ../rig-memvid
-          git clone --depth=1 https://github.com/ForeverAngry/rig-evals-rag ../rig-evals-rag
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt
@@ -45,12 +39,6 @@ jobs:
           - "all-features"
     steps:
       - uses: actions/checkout@v4
-      - name: checkout companion path dependencies
-        run: |
-          git clone --depth=1 https://github.com/ForeverAngry/rig-tap ../rig-tap
-          git clone --depth=1 https://github.com/ForeverAngry/rig-model-meta ../rig-model-catalog
-          git clone --depth=1 https://github.com/ForeverAngry/rig-memvid ../rig-memvid
-          git clone --depth=1 https://github.com/ForeverAngry/rig-evals-rag ../rig-evals-rag
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
@@ -80,13 +68,6 @@ jobs:
           - "all-features"
     steps:
       - uses: actions/checkout@v4
-      - name: checkout companion path dependencies
-        shell: bash
-        run: |
-          git clone --depth=1 https://github.com/ForeverAngry/rig-tap ../rig-tap
-          git clone --depth=1 https://github.com/ForeverAngry/rig-model-meta ../rig-model-catalog
-          git clone --depth=1 https://github.com/ForeverAngry/rig-memvid ../rig-memvid
-          git clone --depth=1 https://github.com/ForeverAngry/rig-evals-rag ../rig-evals-rag
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
         with:
@@ -105,12 +86,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: checkout companion path dependencies
-        run: |
-          git clone --depth=1 https://github.com/ForeverAngry/rig-tap ../rig-tap
-          git clone --depth=1 https://github.com/ForeverAngry/rig-model-meta ../rig-model-catalog
-          git clone --depth=1 https://github.com/ForeverAngry/rig-memvid ../rig-memvid
-          git clone --depth=1 https://github.com/ForeverAngry/rig-evals-rag ../rig-evals-rag
       - uses: dtolnay/rust-toolchain@1.89
       - uses: Swatinem/rust-cache@v2
         with:
@@ -122,12 +97,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: checkout companion path dependencies
-        run: |
-          git clone --depth=1 https://github.com/ForeverAngry/rig-tap ../rig-tap
-          git clone --depth=1 https://github.com/ForeverAngry/rig-model-meta ../rig-model-catalog
-          git clone --depth=1 https://github.com/ForeverAngry/rig-memvid ../rig-memvid
-          git clone --depth=1 https://github.com/ForeverAngry/rig-evals-rag ../rig-evals-rag
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
         with:
@@ -142,12 +111,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: checkout companion path dependencies
-        run: |
-          git clone --depth=1 https://github.com/ForeverAngry/rig-tap ../rig-tap
-          git clone --depth=1 https://github.com/ForeverAngry/rig-model-meta ../rig-model-catalog
-          git clone --depth=1 https://github.com/ForeverAngry/rig-memvid ../rig-memvid
-          git clone --depth=1 https://github.com/ForeverAngry/rig-evals-rag ../rig-evals-rag
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
         with:
