@@ -7,7 +7,7 @@ Cost-optimization decorator for [Rig](https://crates.io/crates/rig-core)
 `CompletionModel`s. Combines an approximate cache (with quality controls),
 prompt compression, cascade routing (cheap → strong), and provenance/observability.
 
-> **Status: v0.1.0.** Exact-match cache, semantic cache
+> **Status: v0.2.0.** Exact-match cache, semantic cache
 > adapter, JSON compression, static cascade routing inside `OptimizedModel`,
 > tokudo observability, `rig-model-catalog` pricing, and ROUGE-L quality scoring
 > are wired. See [Roadmap](#roadmap).

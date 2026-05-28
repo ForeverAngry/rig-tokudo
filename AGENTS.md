@@ -36,7 +36,8 @@ v0.1 surface:
 
 ## Feature flags
 
-Default = none in Phase 1. Optional: `tap`, `model-catalog`, `cache-semantic`,
+Default = `["tap", "model-catalog"]` since Phase 5 shipped. Other optional
+features: `cache-semantic`,
 `cache-memvid`, `compress-llmlingua`, `route-predictive`, `lineage`, `eval`.
 Gate optional code with `#[cfg(feature = "...")]`. Once Phases 5 and 6 land,
 `tap` and `model-catalog` move into the default set.
