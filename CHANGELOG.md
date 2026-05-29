@@ -5,6 +5,16 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Add UAT-style agent chat-loop coverage for compression, cascade fallback,
+  cache reuse, provenance, and savings reports.
+
+### Documentation
+
+- Clarify Tokudo's value, use cases, and boundaries with adjacent Rig companion
+  crates.
+
 ## [0.2.2](https://github.com/ForeverAngry/rig-tokudo/compare/v0.2.1...v0.2.2) - 2026-05-28
 
 ### Fixed
