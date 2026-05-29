@@ -28,7 +28,6 @@ use serde_json::{Value, json};
 use rig_tokudo::{
     CachePolicy, InMemoryCache, JsonKeyPruner, JsonKeyPrunerConfig, LengthValidator,
     OptimizedModel, Report, RouterChoice, RunStats, StaticCascade, TokudoOptions,
-    estimate_actual_usd,
 };
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
@@ -175,7 +174,7 @@ fn add_provider_stats(
     let usage = normalized.response.usage;
     stats.prompt_tokens = stats.prompt_tokens.saturating_add(usage.input_tokens);
     stats.completion_tokens = stats.completion_tokens.saturating_add(usage.output_tokens);
-    stats.usd += estimate_actual_usd(Some("openai:gpt-4o-mini"), &usage).unwrap_or(0.0);
+    stats.usd += token_cost_proxy(&usage);
     match normalized.provenance.router_choice {
         RouterChoice::Cheap => stats.cheap_calls = stats.cheap_calls.saturating_add(1),
         RouterChoice::Strong | RouterChoice::PassThrough => {
@@ -183,6 +182,10 @@ fn add_provider_stats(
         }
         RouterChoice::CacheHit => {}
     }
+}
+
+fn token_cost_proxy(usage: &Usage) -> f64 {
+    usage.input_tokens as f64 * 0.000_001 + usage.output_tokens as f64 * 0.000_004
 }
 
 #[tokio::test(flavor = "multi_thread")]
