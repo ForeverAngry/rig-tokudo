@@ -5,6 +5,16 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.2.3](https://github.com/ForeverAngry/rig-tokudo/compare/v0.2.2...v0.2.3) - 2026-05-29
+
+### Fixed
+
+- Keep tokudo uat feature neutral ([#7](https://github.com/ForeverAngry/rig-tokudo/pull/7))
+
+### Tests
+
+- Cover tokudo chat-loop uat ([#6](https://github.com/ForeverAngry/rig-tokudo/pull/6))
+
 ### Added
 
 - Add UAT-style agent chat-loop coverage for compression, cascade fallback,
