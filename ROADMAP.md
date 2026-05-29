@@ -6,6 +6,17 @@
 the marketing-grade summary. For day-to-day conventions see
 [AGENTS.md](AGENTS.md).
 
+## Positioning
+
+Tokudo owns per-completion cost optimization. Its public surface should stay
+focused on cache, compression, routing, provenance, and measurement around a
+single `CompletionModel` call. It may integrate with sibling crates for pricing,
+telemetry, durable cache storage, or replay metrics, but it should not absorb
+their responsibilities: orchestration belongs in `rig-compose`, reusable memory
+stores in `rig-memvid` / memory-policy crates, telemetry transport and schema in
+`rig-tap`, model metadata in `rig-model-catalog`, and retrieval-quality harnesses
+in `rig-retrieval-evals`.
+
 ## Landed (v0.2.0)
 
 - **Phase 0–1**: bootstrap, lint policy, `OptimizedModel<M, R, C, K>`

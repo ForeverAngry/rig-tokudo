@@ -23,6 +23,27 @@ Decorating any `CompletionModel` with `OptimizedModel` lets a host:
 4. **Observe** every decision: hit/miss, router choice, USD saved via
    `rig-model-catalog` pricing.
 
+Tokudo is valuable when the expensive part of a workflow is repeated or
+overpowered completion calls. It sits directly around the model call and makes
+per-request tradeoffs: reuse a previous answer, shrink the request, try a
+cheaper model first, or record enough provenance to prove what happened.
+
+It is not an agent orchestrator, memory store, model catalog, observability
+backend, or retrieval evaluator. Those jobs stay in the companion crates that
+own them. Tokudo uses those crates at the edges: `rig-model-catalog` supplies
+pricing, `rig-tap` receives telemetry, `rig-memvid` can back a durable semantic
+cache, and `rig-retrieval-evals` can consume replay rows for measurement.
+
+## Use Cases
+
+| Use case | Tokudo value | Not the right fit when |
+| --- | --- | --- |
+| High-volume support, extraction, enrichment, or routing calls | Cache repeat prompts and route easy requests to a cheaper model while keeping a strong fallback. | Every request is unique, high-stakes, and already requires the strongest model. |
+| JSON-heavy tool or API prompts | Prune structural noise before dispatch without changing the host's `CompletionModel` integration. | You need semantic summarization or task planning before the prompt is built. |
+| Cost and latency experiments | Compare baseline vs wrapped runs with savings, cache-hit rate, cheap-model share, quality score, and stable report artifacts. | You need a full benchmark harness for retriever quality or dataset management. |
+| Auditable optimization rollouts | Attach provenance, lineage edges, and tap-compatible telemetry to explain cache hits, provider calls, and router decisions. | You need long-term trace storage, dashboards, or alerting; Tokudo only emits the events. |
+| Durable semantic reuse | Store semantic cache entries in `.mv2` through the optional `cache-memvid` feature. | You need a general-purpose agent memory system; use `rig-memvid` directly for that. |
+
 ## Quick start
 
 ```rust,no_run
