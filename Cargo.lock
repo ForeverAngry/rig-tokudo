@@ -2042,14 +2042,28 @@ dependencies = [
 ]
 
 [[package]]
-name = "rig-memvid"
-version = "0.2.0"
+name = "rig-memory-policy"
+version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "928215e6f71fe2b0637d4010d180ce9bde4d291f1770e06b374f71ca003c90f0"
+checksum = "4d6b37778ce37a28dee94f4cfedf7a8e249a0e953e6346a42a73319cb55e6678"
+dependencies = [
+ "blake3",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tracing",
+]
+
+[[package]]
+name = "rig-memvid"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ff937fbff8f31a082dc04b60444db4e16fe3c78b637dfdb0aa17c86a90bae0bd"
 dependencies = [
  "futures",
  "memvid-core",
  "rig-core",
+ "rig-memory-policy",
  "serde",
  "serde_json",
  "thiserror 2.0.18",
