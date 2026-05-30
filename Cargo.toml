@@ -28,7 +28,7 @@ regex = "1"
 # `version` is honored on publish.
 rig-tap = { version = "0.1", optional = true }
 rig-model-catalog = { version = "0.1", optional = true, default-features = false, features = ["pricing"] }
-rig-memvid = { version = "0.2", optional = true, default-features = false, features = ["lex"] }
+rig-memvid = { version = "0.4", optional = true, default-features = false, features = ["lex"] }
 rig-retrieval-evals = { version = "0.2", optional = true, default-features = false }
 
 [dev-dependencies]
