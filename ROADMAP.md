@@ -59,6 +59,10 @@ in `rig-retrieval-evals`.
   writes stable `report.json`, `report.md`, and `manifest.json` outputs;
   `ReplayReport::write_artifacts` adds `metrics.json` and `metrics.md` for
   `rig-retrieval-evals` bundles from replay runs.
+- **Phase 6.5 — Foyer exact-cache adapter**: `cache-foyer` exposes
+  `FoyerCache`, an optional exact-match backend over Foyer's in-memory cache.
+  It keeps Tokudo's `Cache` contract and `CachedEntry::expires_at_secs`
+  semantics while treating Foyer eviction as a normal miss.
 - `CachePolicy::NoStore` / `NoCache` / `ForceFresh` honored on both read
   and write paths.
 - `cache-memvid` is shipped as a feature-gated durable semantic cache over
@@ -74,8 +78,8 @@ in `rig-retrieval-evals`.
 
 - `InMemoryCache` is single-process and `Mutex`-backed. It is correct
   but is not a substitute for a shared cache across replicas — use
-  `cache-memvid` or a Redis-style backend behind the trait before
-  production rollouts.
+  `cache-foyer`, `cache-memvid`, or a Redis-style backend behind the trait
+  before production rollouts.
 - `JsonKeyPruner` is conservative by design: it prunes keys, not values.
   Hosts that need value-level prompt pruning can enable `compress-llmlingua`
   or wrap the `Compressor` trait with their own tokenizer/scorer.

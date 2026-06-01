@@ -188,6 +188,40 @@ async fn force_fresh_bypasses_read_but_still_writes() {
 }
 
 #[tokio::test]
+async fn no_cache_bypasses_read_but_still_writes() {
+    let mock = MockModel::new("hi");
+    let calls = mock.calls.clone();
+    let model = OptimizedModel::builder(mock)
+        .with_cache(InMemoryCache::new())
+        .build();
+
+    model
+        .complete(request("hi"), TokudoOptions::new())
+        .await
+        .unwrap();
+    assert_eq!(calls.load(Ordering::SeqCst), 1);
+
+    let fresh = model
+        .complete(
+            request("hi"),
+            TokudoOptions::new().with_cache_policy(CachePolicy::NoCache),
+        )
+        .await
+        .unwrap();
+    assert_eq!(calls.load(Ordering::SeqCst), 2);
+    assert!(!fresh.provenance.cache_hit);
+    assert_eq!(fresh.response.raw_response.n, 1);
+
+    let cached = model
+        .complete(request("hi"), TokudoOptions::new())
+        .await
+        .unwrap();
+    assert_eq!(calls.load(Ordering::SeqCst), 2);
+    assert!(cached.provenance.cache_hit);
+    assert_eq!(cached.response.raw_response.n, 1);
+}
+
+#[tokio::test]
 async fn no_store_disables_writes() {
     let mock = MockModel::new("hi");
     let calls = mock.calls.clone();
@@ -208,4 +242,37 @@ async fn no_store_disables_writes() {
         .await
         .unwrap();
     assert_eq!(calls.load(Ordering::SeqCst), 2);
+}
+
+#[tokio::test]
+async fn no_store_also_bypasses_existing_cache_reads() {
+    let mock = MockModel::new("hi");
+    let calls = mock.calls.clone();
+    let model = OptimizedModel::builder(mock)
+        .with_cache(InMemoryCache::new())
+        .build();
+
+    model
+        .complete(request("hi"), TokudoOptions::new())
+        .await
+        .unwrap();
+    assert_eq!(calls.load(Ordering::SeqCst), 1);
+
+    let no_store = model
+        .complete(
+            request("hi"),
+            TokudoOptions::new().with_cache_policy(CachePolicy::NoStore),
+        )
+        .await
+        .unwrap();
+    assert_eq!(calls.load(Ordering::SeqCst), 2);
+    assert!(!no_store.provenance.cache_hit);
+
+    let cached = model
+        .complete(request("hi"), TokudoOptions::new())
+        .await
+        .unwrap();
+    assert_eq!(calls.load(Ordering::SeqCst), 2);
+    assert!(cached.provenance.cache_hit);
+    assert_eq!(cached.response.raw_response.n, 0);
 }

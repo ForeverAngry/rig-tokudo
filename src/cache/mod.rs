@@ -5,12 +5,16 @@
 //! semantic / vector-store-backed cache lands behind the `cache-semantic`
 //! feature in a follow-up step.
 
+#[cfg(feature = "cache-foyer")]
+mod foyer;
 mod memory;
 #[cfg(feature = "cache-memvid")]
 mod memvid;
 #[cfg(feature = "cache-semantic")]
 mod semantic;
 
+#[cfg(feature = "cache-foyer")]
+pub use foyer::{FoyerCache, FoyerCacheConfig};
 pub use memory::{InMemoryCache, InMemoryCacheConfig};
 #[cfg(feature = "cache-memvid")]
 pub use memvid::{MemvidSemanticCache, MemvidSemanticCacheConfig};

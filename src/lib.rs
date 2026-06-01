@@ -13,7 +13,7 @@
 //! - [`Provenance`] — per-call audit record consumed by observability and
 //!   savings reports.
 
-#![warn(missing_docs)]
+#![deny(missing_docs)]
 
 pub mod cache;
 pub mod compress;
@@ -36,6 +36,8 @@ pub mod route;
 pub mod traits;
 
 pub use cache::{CachedCompletionResponse, InMemoryCache, InMemoryCacheConfig};
+#[cfg(feature = "cache-foyer")]
+pub use cache::{FoyerCache, FoyerCacheConfig};
 #[cfg(feature = "cache-memvid")]
 pub use cache::{MemvidSemanticCache, MemvidSemanticCacheConfig};
 #[cfg(feature = "cache-semantic")]

@@ -157,4 +157,27 @@ mod tests {
         assert!((actual - 0.00345).abs() < 1e-12);
         assert!((provider_delta - 0.00075).abs() < 1e-12);
     }
+
+    #[test]
+    fn zero_token_usage_estimates_zero_cost_for_known_model() {
+        let usage = Usage::new();
+
+        let actual = estimate_actual_usd(Some("openai:gpt-4o-mini"), &usage).unwrap();
+        let provider_delta =
+            estimate_provider_cache_usd_delta(Some("openai:gpt-4o-mini"), &usage).unwrap();
+
+        assert_eq!(actual, 0.0);
+        assert_eq!(provider_delta, 0.0);
+    }
+
+    #[test]
+    fn unknown_or_empty_model_returns_none() {
+        let usage = Usage::new();
+        let table = PricingTable::builtin();
+
+        assert!(resolve_price(&table, "").is_none());
+        assert!(resolve_price(&table, "unknown:nope").is_none());
+        assert!(estimate_actual_usd(None, &usage).is_none());
+        assert!(estimate_provider_cache_usd_delta(Some("unknown:nope"), &usage).is_none());
+    }
 }

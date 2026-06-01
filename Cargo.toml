@@ -30,6 +30,7 @@ rig-tap = { version = "0.1", optional = true }
 rig-model-catalog = { version = "0.1", optional = true, default-features = false, features = ["pricing"] }
 rig-memvid = { version = "0.4", optional = true, default-features = false, features = ["lex"] }
 rig-retrieval-evals = { version = "0.2", optional = true, default-features = false }
+foyer-memory = { version = "0.22.3", optional = true }
 
 [dev-dependencies]
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
@@ -54,6 +55,9 @@ cache-semantic = []
 # Plug rig-memvid in as the cache-semantic backend.
 cache-memvid = ["cache-semantic", "dep:rig-memvid"]
 
+# Exact-match cache backed by Foyer's in-memory cache.
+cache-foyer = ["dep:foyer-memory"]
+
 # Dependency-free LLMLingua-style prompt compression adapter.
 compress-llmlingua = []
 
@@ -68,7 +72,7 @@ eval = ["dep:rig-retrieval-evals"]
 
 [lints.rust]
 unsafe_code = "forbid"
-missing_docs = "warn"
+missing_docs = "deny"
 
 [lints.clippy]
 await_holding_lock = "deny"
