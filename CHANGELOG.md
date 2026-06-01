@@ -5,6 +5,12 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.2.5](https://github.com/ForeverAngry/rig-tokudo/compare/v0.2.4...v0.2.5) - 2026-06-01
+
+### Documentation
+
+- Align README Status with shipped 0.2.4 ([#11](https://github.com/ForeverAngry/rig-tokudo/pull/11))
+
 ## [0.2.4](https://github.com/ForeverAngry/rig-tokudo/compare/v0.2.3...v0.2.4) - 2026-06-01
 
 ### Added
