@@ -57,6 +57,24 @@ let _wrapped = OptimizedModel::builder(model).build();
 # }
 ```
 
+Use the optional Foyer backend when exact-match cache traffic needs a bounded,
+sharded in-memory cache rather than the simple default test cache:
+
+```rust,no_run
+use rig_tokudo::{FoyerCache, FoyerCacheConfig, OptimizedModel};
+
+# fn demo<M: rig::completion::CompletionModel>(model: M) {
+let cache = FoyerCache::with_config(FoyerCacheConfig {
+   capacity: 10_000,
+   shards: 16,
+   name: "support-cache".into(),
+});
+let _wrapped = OptimizedModel::builder(model).with_cache(cache).build();
+# }
+```
+
+Enable it with `--features cache-foyer`.
+
 ## Feature flags
 
 | Flag                  | Status   | Purpose                                                               |
@@ -65,6 +83,7 @@ let _wrapped = OptimizedModel::builder(model).build();
 | `model-catalog`       | Default  | USD pricing from `rig-model-catalog`, including provider cache-token deltas. |
 | `cache-semantic`      | Shipped  | Read-through cache over any `VectorStoreIndexDyn`.                    |
 | `cache-memvid`        | Shipped  | Durable semantic-cache backend backed by `rig-memvid`.                |
+| `cache-foyer`         | Optional | Exact-match cache backed by Foyer's in-memory cache.                  |
 | `compress-llmlingua`  | Optional | Dependency-free LLMLingua-style prompt token pruning.                 |
 | `route-predictive`    | Optional | Train-free calibration-set router for cheap-vs-strong hints.          |
 | `lineage`             | Optional | Per-call response lineage edges for cache/provider audit trails.      |
@@ -91,6 +110,9 @@ The `eval` replay bridge consumes recorded baseline/Tokudo rows and produces
 native `rig-retrieval-evals::MetricReport` rows without re-running providers.
 `cache-memvid` stores serialized cached completions in `.mv2` files while
 indexing the semantic request projection as a searchable frame prefix.
+`cache-foyer` provides a higher-concurrency exact-match backend for repeated
+request keys; it is opt-in because Foyer's published memory crate brings its
+runtime adapter only when the feature is enabled.
 `Report::write_artifacts` and `ReplayReport::write_artifacts` persist
 CI-friendly `report.json`, `report.md`, `metrics.*`, and `manifest.json`
 outputs with stable filenames.

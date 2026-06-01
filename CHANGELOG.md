@@ -5,6 +5,13 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Add `cache-foyer`, an optional exact-match cache backend powered by
+  Foyer's in-memory cache. `FoyerCache` implements Tokudo's existing `Cache`
+  trait, preserves `CachedEntry::expires_at_secs` expiry semantics, and treats
+  Foyer eviction as a normal cache miss.
+
 ## [0.2.3](https://github.com/ForeverAngry/rig-tokudo/compare/v0.2.2...v0.2.3) - 2026-05-29
 
 ### Fixed
