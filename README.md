@@ -7,10 +7,18 @@ Cost-optimization decorator for [Rig](https://crates.io/crates/rig-core)
 `CompletionModel`s. Combines an approximate cache (with quality controls),
 prompt compression, cascade routing (cheap → strong), and provenance/observability.
 
-> **Status: v0.2.0.** Exact-match cache, semantic cache
+> **Status: v0.2.4.** Exact-match cache, semantic cache
 > adapter, JSON compression, static cascade routing inside `OptimizedModel`,
 > tokudo observability, `rig-model-catalog` pricing, and ROUGE-L quality scoring
-> are wired. See [Roadmap](#roadmap).
+> are wired. A multi-turn UAT regression test
+> ([`tests/uat_chat_loop_regression.rs`](tests/uat_chat_loop_regression.rs))
+> exercises the cache / cascade / compression matrix end-to-end against a
+> recording fake `CompletionModel`. See [Roadmap](#roadmap).
+>
+> **Pricing note:** the bundled `rig-model-catalog` `PricingTable::builtin()`
+> is a dated snapshot. Production deployments should override with their own
+> rates via `PricingTable::with(...)` or a host-owned JSON file so cost
+> reports do not drift with provider price changes.
 
 ## Why
 
