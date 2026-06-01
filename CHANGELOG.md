@@ -5,6 +5,16 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.2.4](https://github.com/ForeverAngry/rig-tokudo/compare/v0.2.3...v0.2.4) - 2026-06-01
+
+### Added
+
+- Add foyer-backed cache ([#13](https://github.com/ForeverAngry/rig-tokudo/pull/13))
+
+### Tests
+
+- Cover tokudo per-call overrides and cascade regression ([#9](https://github.com/ForeverAngry/rig-tokudo/pull/9))
+
 ### Added
 
 - Add `cache-foyer`, an optional exact-match cache backend powered by

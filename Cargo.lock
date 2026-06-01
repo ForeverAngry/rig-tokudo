@@ -2229,7 +2229,7 @@ dependencies = [
 
 [[package]]
 name = "rig-tokudo"
-version = "0.2.3"
+version = "0.2.4"
 dependencies = [
  "foyer-memory",
  "hex",
