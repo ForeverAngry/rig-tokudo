@@ -88,8 +88,10 @@ pub enum TokudoEvent {
     },
     /// A token-usage snapshot for cost estimation. The decorator emits
     /// this event after every provider call (cache hits emit zero usage).
-    /// Phase 5 carries raw token counts only; USD estimates land with the
-    /// `model-catalog` pricing default in Phase 5.1.
+    /// USD fields are populated only when the host supplies a
+    /// [`crate::cost::CostModel`] or a per-call
+    /// [`crate::TokudoOptions::with_cost_estimate`] override; otherwise only
+    /// raw token counts are carried.
     #[serde(rename = "cost.estimate")]
     CostEstimate {
         /// Whether the response came from the cache.
@@ -106,8 +108,8 @@ pub enum TokudoEvent {
         cache_write_tokens: u64,
         /// Provider-reported total tokens.
         total_tokens: u64,
-        /// USD estimate of the actually-billed cost. `None` until pricing
-        /// is wired through `rig-model-catalog` in Phase 5.1.
+        /// USD estimate of the actually-billed cost. `None` unless a host
+        /// [`crate::cost::CostModel`] or per-call override supplied it.
         #[serde(skip_serializing_if = "Option::is_none")]
         usd_actual_estimate: Option<f64>,
         /// Provider-side cache price delta, separate from Tokudo savings.

@@ -9,16 +9,19 @@ prompt compression, cascade routing (cheap → strong), and provenance/observabi
 
 > **Status: v0.2.4.** Exact-match cache, semantic cache
 > adapter, JSON compression, static cascade routing inside `OptimizedModel`,
-> tokudo observability, `rig-model-catalog` pricing, and ROUGE-L quality scoring
-> are wired. A multi-turn UAT regression test
+> tokudo observability, pluggable USD cost estimation, and ROUGE-L quality
+> scoring are wired. A multi-turn UAT regression test
 > ([`tests/uat_chat_loop_regression.rs`](tests/uat_chat_loop_regression.rs))
 > exercises the cache / cascade / compression matrix end-to-end against a
 > recording fake `CompletionModel`. See [Roadmap](#roadmap).
 >
-> **Pricing note:** the bundled `rig-model-catalog` `PricingTable::builtin()`
-> is a dated snapshot. Production deployments should override with their own
-> rates via `PricingTable::with(...)` or a host-owned JSON file so cost
-> reports do not drift with provider price changes.
+> **Pricing note:** tokudo owns no pricing data. Supply USD estimates by
+> implementing the [`CostModel`](src/cost.rs) trait and installing it with
+> `OptimizedModel::builder(model).with_cost_model(..)`, or hand a per-call
+> literal through `TokudoOptions::with_cost_estimate(..)`. Without either,
+> events and provenance carry token counts only and leave USD fields `None`.
+> The [`measure_savings`](examples/measure_savings.rs) example shows a
+> `CostModel` backed by `rig-model-catalog`'s bundled `PricingTable`.
 
 ## Why
 
@@ -28,8 +31,8 @@ Decorating any `CompletionModel` with `OptimizedModel` lets a host:
 2. **Cascade**: try a cheap model first, validate, fall back to a strong one
    only when needed (FrugalGPT-style).
 3. **Compress** verbose prompts (JSON pruning by default; LLMLingua-style pruning behind a feature).
-4. **Observe** every decision: hit/miss, router choice, USD saved via
-   `rig-model-catalog` pricing.
+4. **Observe** every decision: hit/miss, router choice, and USD saved from a
+   host-supplied `CostModel`.
 
 Tokudo is valuable when the expensive part of a workflow is repeated or
 overpowered completion calls. It sits directly around the model call and makes
@@ -38,9 +41,10 @@ cheaper model first, or record enough provenance to prove what happened.
 
 It is not an agent orchestrator, memory store, model catalog, observability
 backend, or retrieval evaluator. Those jobs stay in the companion crates that
-own them. Tokudo uses those crates at the edges: `rig-model-catalog` supplies
-pricing, `rig-tap` receives telemetry, `rig-memvid` can back a durable semantic
-cache, and `rig-retrieval-evals` can consume replay rows for measurement.
+own them. Tokudo uses those crates at the edges: a host `CostModel` supplies
+pricing (e.g. backed by `rig-model-catalog`), `rig-tap` receives telemetry,
+`rig-memvid` can back a durable semantic cache, and `rig-retrieval-evals` can
+consume replay rows for measurement.
 
 ## Use Cases
 
@@ -58,8 +62,9 @@ cache, and `rig-retrieval-evals` can consume replay rows for measurement.
 use rig_tokudo::{OptimizedModel, TokudoOptions};
 
 // Wrap any rig CompletionModel.
-// Defaults emit tokudo/tap-compatible telemetry and fill USD estimates when
-// the request model resolves through rig-model-catalog's built-in pricing table.
+// Defaults emit tokudo/tap-compatible telemetry. USD estimates stay `None`
+// until you install a `CostModel` via `.with_cost_model(..)` or pass a
+// per-call literal through `TokudoOptions::with_cost_estimate(..)`.
 # fn demo<M: rig::completion::CompletionModel>(model: M) {
 let _wrapped = OptimizedModel::builder(model).build();
 # }
@@ -88,7 +93,6 @@ Enable it with `--features cache-foyer`.
 | Flag                  | Status   | Purpose                                                               |
 | --------------------- | -------- | --------------------------------------------------------------------- |
 | `tap`                 | Default  | Emit `rig_tap.*`-aligned scalar fields on tokudo events.              |
-| `model-catalog`       | Default  | USD pricing from `rig-model-catalog`, including provider cache-token deltas. |
 | `cache-semantic`      | Shipped  | Read-through cache over any `VectorStoreIndexDyn`.                    |
 | `cache-memvid`        | Shipped  | Durable semantic-cache backend backed by `rig-memvid`.                |
 | `cache-foyer`         | Optional | Exact-match cache backed by Foyer's in-memory cache.                  |
@@ -103,7 +107,7 @@ Enable it with `--features cache-foyer`.
 - **Phase 2**: cache pillar (`Cache`, `CacheKey`, `InMemoryCache`) — **shipped**.
 - **Phase 3**: compression (`JsonKeyPruner`) — **shipped**.
 - **Phase 4**: routing (`StaticCascade`, validators) and `OptimizedModel` wiring — **shipped**.
-- **Phase 5**: observability + default-on `tap` / `model-catalog` pricing, with provider-side cache-token deltas kept separate from Tokudo savings — **shipped**.
+- **Phase 5**: observability + default-on `tap`, with a pluggable `CostModel` for USD estimates and provider-side cache-token deltas kept separate from Tokudo savings — **shipped**.
 - **Phase 6**: measurement — savings reports, semantic cache, ROUGE-L quality scoring, and `measure_savings` example — **shipped**.
 - **Phase 6.1**: optional `lineage` telemetry edges link served responses to cache entries or provider calls — **shipped**.
 - **Phase 6.2**: `eval` replay bridge emits `rig-retrieval-evals` metric reports from recorded Tokudo provenance — **shipped**.

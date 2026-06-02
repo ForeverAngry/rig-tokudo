@@ -18,7 +18,7 @@
 //!
 //! Kept feature-neutral so it compiles under every CI feature combo. Only
 //! provenance flags and provider call counts are asserted — not USD
-//! amounts, which depend on the optional `model-catalog` feature.
+//! amounts, which depend on a host-supplied `CostModel`.
 
 #![allow(
     clippy::unwrap_used,

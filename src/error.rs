@@ -5,7 +5,7 @@ use thiserror::Error;
 /// Errors produced by the rig-tokudo decorator stack.
 ///
 /// Variants are intentionally coarse-grained per pillar (cache / router /
-/// compressor / provider / model-catalog / tap). Add a new variant rather than
+/// compressor / provider / cost-model / tap). Add a new variant rather than
 /// reusing an existing one when surfacing a new fault domain.
 #[derive(Debug, Error)]
 #[non_exhaustive]
@@ -26,8 +26,8 @@ pub enum TokudoError {
     #[error("provider error: {0}")]
     Provider(#[from] rig::completion::CompletionError),
 
-    /// Failure pulling tokenizer or pricing data from `rig-model-catalog`.
-    #[error("model-catalog error: {0}")]
+    /// Failure resolving a USD cost estimate from a host [`crate::cost::CostModel`].
+    #[error("cost-model error: {0}")]
     ModelMeta(String),
 
     /// Failure emitting an observability event.

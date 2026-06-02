@@ -4,11 +4,13 @@
 //!
 //! Phase 6 ships against a built-in `MockProvider` so the example runs
 //! anywhere with no API keys, env vars, or local model server. USD estimates
-//! come from `rig-model-catalog`'s built-in pricing table through the default-on
-//! `model-catalog` feature. Real-provider wiring (Ollama / OpenAI / Anthropic)
-//! is a follow-up: swap the `MockProvider` for any type implementing
-//! `rig::completion::CompletionModel` and the rest of the pipeline keeps
-//! working.
+//! come from a `CatalogCostModel` defined below, which prices calls using
+//! `rig-model-catalog`'s bundled pricing table and is installed on the
+//! optimizer via `with_cost_model`. The library owns no pricing data; swap in
+//! any `CostModel` to price against your own rates or billing API. Real-provider
+//! wiring (Ollama / OpenAI / Anthropic) is a follow-up: swap the `MockProvider`
+//! for any type implementing `rig::completion::CompletionModel` and the rest of
+//! the pipeline keeps working.
 //!
 //! Run with:
 //!
@@ -33,10 +35,12 @@ use rig::completion::{
 use rig::streaming::StreamingCompletionResponse;
 use serde::{Deserialize, Serialize};
 
+use rig_tokudo::cost::{CostBreakdown, CostModel};
 use rig_tokudo::{
     CachePolicy, InMemoryCache, OptimizedModel, Report, RunStats, Thresholds, TokudoOptions,
-    estimate_actual_usd, estimate_provider_cache_usd_delta,
 };
+
+use rig_model_catalog::{ModelPrice, PricingTable, ProviderId};
 
 // ---------------------------------------------------------------------------
 // Mock provider
@@ -108,12 +112,93 @@ impl CompletionModel for MockProvider {
     }
 }
 
-fn estimate_usd(provider: &MockProvider, usage: &Usage) -> f64 {
-    estimate_actual_usd(Some(provider.model), usage).unwrap_or(0.0)
+// ---------------------------------------------------------------------------
+// Catalog-backed CostModel
+// ---------------------------------------------------------------------------
+
+/// A `CostModel` that prices calls from `rig-model-catalog`'s bundled pricing
+/// table. This lives in the example — the library itself owns no pricing data;
+/// hosts plug in whatever pricing source they like via `with_cost_model`.
+#[derive(Clone)]
+struct CatalogCostModel {
+    table: PricingTable,
 }
 
-fn estimate_provider_cache_delta(provider: &MockProvider, usage: &Usage) -> f64 {
-    estimate_provider_cache_usd_delta(Some(provider.model), usage).unwrap_or(0.0)
+impl CatalogCostModel {
+    fn builtin() -> Self {
+        Self {
+            table: PricingTable::builtin(),
+        }
+    }
+
+    /// Resolve a price row from an arbitrary model id (`openai:gpt-4o-mini`,
+    /// `openai/gpt-4o-mini`, or provider-local `gpt-4o-mini`).
+    fn resolve(&self, model_id: &str) -> Option<ModelPrice> {
+        let trimmed = model_id.trim();
+        if trimmed.is_empty() {
+            return None;
+        }
+        for delimiter in [':', '/'] {
+            if let Some((provider, model)) = trimmed.split_once(delimiter)
+                && !provider.is_empty()
+                && !model.is_empty()
+                && let Some(price) = self.table.lookup(provider, model)
+            {
+                let _ = ProviderId::new(provider);
+                return Some(price.clone());
+            }
+        }
+        // Provider-local id: resolve only when exactly one provider prices it.
+        let mut found: Option<ModelPrice> = None;
+        for (_provider, model, price) in self.table.iter() {
+            if model != trimmed {
+                continue;
+            }
+            if found.is_some() {
+                return None;
+            }
+            found = Some(price.clone());
+        }
+        found
+    }
+}
+
+impl CostModel for CatalogCostModel {
+    fn estimate(&self, model: Option<&str>, usage: &Usage) -> Option<CostBreakdown> {
+        let price = self.resolve(model?)?;
+        let usd_actual = price.cost_for(
+            usage.input_tokens,
+            usage.output_tokens,
+            usage.cached_input_tokens,
+            usage.cache_creation_input_tokens,
+        );
+        let input_rate = price.input_per_million;
+        let cached_rate = price.cached_input_per_million.unwrap_or(input_rate);
+        let cache_write_rate = price.cache_write_per_million.unwrap_or(input_rate);
+        let read_delta = usage.cached_input_tokens as f64 * (input_rate - cached_rate);
+        let write_delta =
+            usage.cache_creation_input_tokens as f64 * (input_rate - cache_write_rate);
+        Some(CostBreakdown {
+            usd_actual,
+            provider_cache_usd_delta: (read_delta + write_delta) / 1_000_000.0,
+        })
+    }
+}
+
+fn estimate_usd(cost: &CatalogCostModel, provider: &MockProvider, usage: &Usage) -> f64 {
+    cost.estimate(Some(provider.model), usage)
+        .map(|b| b.usd_actual)
+        .unwrap_or(0.0)
+}
+
+fn estimate_provider_cache_delta(
+    cost: &CatalogCostModel,
+    provider: &MockProvider,
+    usage: &Usage,
+) -> f64 {
+    cost.estimate(Some(provider.model), usage)
+        .map(|b| b.provider_cache_usd_delta)
+        .unwrap_or(0.0)
 }
 
 // ---------------------------------------------------------------------------
@@ -166,7 +251,11 @@ fn build_request(model: &str, prompt: &str) -> CompletionRequest {
 // Runs
 // ---------------------------------------------------------------------------
 
-async fn run_baseline(provider: &MockProvider, items: &[WorkloadItem]) -> RunStats {
+async fn run_baseline(
+    cost: &CatalogCostModel,
+    provider: &MockProvider,
+    items: &[WorkloadItem],
+) -> RunStats {
     let mut stats = RunStats::default();
     let start = Instant::now();
     for item in items {
@@ -177,10 +266,11 @@ async fn run_baseline(provider: &MockProvider, items: &[WorkloadItem]) -> RunSta
         stats.requests += 1;
         stats.prompt_tokens += resp.usage.input_tokens;
         stats.completion_tokens += resp.usage.output_tokens;
-        stats.usd += estimate_usd(provider, &resp.usage);
+        stats.usd += estimate_usd(cost, provider, &resp.usage);
         stats.provider_cached_input_tokens += resp.usage.cached_input_tokens;
         stats.provider_cache_write_tokens += resp.usage.cache_creation_input_tokens;
-        stats.provider_cache_usd_delta += estimate_provider_cache_delta(provider, &resp.usage);
+        stats.provider_cache_usd_delta +=
+            estimate_provider_cache_delta(cost, provider, &resp.usage);
         stats.strong_calls += 1;
         // Simulated provider latency.
         stats.wall_ms = stats.wall_ms.saturating_add(provider.latency_ms);
@@ -189,9 +279,14 @@ async fn run_baseline(provider: &MockProvider, items: &[WorkloadItem]) -> RunSta
     stats
 }
 
-async fn run_tokudo(provider: MockProvider, items: &[WorkloadItem]) -> RunStats {
+async fn run_tokudo(
+    cost: CatalogCostModel,
+    provider: MockProvider,
+    items: &[WorkloadItem],
+) -> RunStats {
     let model = OptimizedModel::builder(provider.clone())
         .with_cache(InMemoryCache::new())
+        .with_cost_model(cost.clone())
         .build();
     let mut stats = RunStats::default();
     for item in items {
@@ -213,10 +308,11 @@ async fn run_tokudo(provider: MockProvider, items: &[WorkloadItem]) -> RunStats 
             let usage = normalized.response.usage;
             stats.prompt_tokens += usage.input_tokens;
             stats.completion_tokens += usage.output_tokens;
-            stats.usd += estimate_usd(&provider, &usage);
+            stats.usd += estimate_usd(&cost, &provider, &usage);
             stats.provider_cached_input_tokens += usage.cached_input_tokens;
             stats.provider_cache_write_tokens += usage.cache_creation_input_tokens;
-            stats.provider_cache_usd_delta += estimate_provider_cache_delta(&provider, &usage);
+            stats.provider_cache_usd_delta +=
+                estimate_provider_cache_delta(&cost, &provider, &usage);
             stats.strong_calls += 1;
             stats.wall_ms = stats.wall_ms.saturating_add(provider.latency_ms);
         }
@@ -257,8 +353,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let items = load_workload(&workload_path());
     println!("workload: {} items", items.len());
 
-    let baseline = run_baseline(&provider, &items).await;
-    let tokudo = run_tokudo(provider.clone(), &items).await;
+    let cost = CatalogCostModel::builtin();
+    let baseline = run_baseline(&cost, &provider, &items).await;
+    let tokudo = run_tokudo(cost.clone(), provider.clone(), &items).await;
     assert_tool_call_bypass(&items, &tokudo);
 
     let report = Report::from_runs(baseline, tokudo, None);

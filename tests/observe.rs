@@ -260,12 +260,6 @@ fn cost_estimate_carries_provider_usage_on_miss() {
     assert_eq!(parsed["input_tokens"], 7);
     assert_eq!(parsed["output_tokens"], 11);
     assert_eq!(parsed["total_tokens"], 18);
-
-    #[cfg(feature = "model-catalog")]
-    {
-        let actual = parsed["usd_actual_estimate"].as_f64().unwrap();
-        assert!((actual - 0.00000765).abs() < 1e-12);
-    }
 }
 
 #[cfg(feature = "lineage")]
