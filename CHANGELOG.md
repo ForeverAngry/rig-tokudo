@@ -5,6 +5,15 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- Pricing resolution and the provider cache-delta arithmetic now live in
+  `rig-model-catalog` (`PricingTable::resolve`, `ModelPrice::cache_delta`,
+  `ResolvedPrice`). Tokudo's `pricing` module is now a thin `Usage`-to-scalar
+  consumer and re-exports `ResolvedPrice` from the catalog. Tokudo no longer
+  owns any pricing logic — only cost estimation glue for its telemetry and
+  replay rows. Requires the `rig-model-catalog` release that ships those APIs.
+
 ## [0.2.4](https://github.com/ForeverAngry/rig-tokudo/compare/v0.2.3...v0.2.4) - 2026-06-01
 
 ### Added
