@@ -5,7 +5,6 @@ check:
     cargo fmt --all -- --check
     cargo clippy --all-targets -- -D warnings
     cargo clippy --no-default-features --all-targets --features "tap" -- -D warnings
-    cargo clippy --no-default-features --all-targets --features "model-catalog" -- -D warnings
     cargo clippy --no-default-features --all-targets --features "cache-foyer" -- -D warnings
     cargo clippy --no-default-features --all-targets --features "cache-memvid" -- -D warnings
     cargo clippy --no-default-features --all-targets --features "eval" -- -D warnings
@@ -28,4 +27,4 @@ test:
 
 # Phase 6.F: real-user chat-savings benchmark.
 measure provider="ollama":
-    cargo run --release --example measure_savings --features "tap,model-catalog" -- --provider {{provider}}
+    cargo run --release --example measure_savings --features "tap" -- --provider {{provider}}

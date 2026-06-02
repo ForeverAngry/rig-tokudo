@@ -191,8 +191,8 @@ impl Compressor for JsonKeyPruner {
             return Ok(None);
         }
 
-        // Char count is used as a coarse token proxy; real tokenization arrives
-        // when the `model-catalog` feature lands in Phase 5.
+        // Char count is used as a coarse token proxy; real tokenization is a
+        // follow-up enhancement.
         Ok(Some(CompressionStats {
             input_tokens: u32::try_from(input_chars).unwrap_or(u32::MAX),
             output_tokens: u32::try_from(output_chars).unwrap_or(u32::MAX),

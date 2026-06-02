@@ -5,6 +5,28 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- `CostModel` trait + `CostBreakdown` (`src/cost.rs`): a host-supplied source
+  of USD cost estimates. Install one with
+  `OptimizedModel::builder(model).with_cost_model(..)`.
+- `TokudoOptions::with_cost_estimate(..)` /
+  `with_provider_cache_usd_delta(..)`: per-call USD overrides that take
+  precedence over any configured `CostModel`.
+
+### Changed
+
+- **Breaking:** tokudo no longer bundles pricing data. The default-on
+  `model-catalog` feature and the optional `rig-model-catalog` dependency are
+  removed; the `pricing` module (`estimate_actual_usd`,
+  `estimate_provider_cache_usd_delta`, `resolve_price`, `ResolvedPrice`) is
+  gone. USD telemetry/provenance fields are now populated only when a host
+  supplies a `CostModel` or a per-call estimate; otherwise they stay `None`.
+  Default features are now `["tap"]`.
+- The `measure_savings` example now defines a `CatalogCostModel` backed by
+  `rig-model-catalog` (a dev-dependency) and installs it via
+  `with_cost_model`, demonstrating the new boundary.
+
 ## [0.2.4](https://github.com/ForeverAngry/rig-tokudo/compare/v0.2.3...v0.2.4) - 2026-06-01
 
 ### Added

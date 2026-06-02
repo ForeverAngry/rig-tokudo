@@ -18,7 +18,10 @@
 
 use rig::completion::{CompletionRequest, CompletionResponse};
 
+use std::sync::Arc;
+
 use crate::cache::CachedCompletionResponse;
+use crate::cost::{CostBreakdown, CostModel};
 use crate::dispatch::DispatchModel;
 use crate::error::{Result, TokudoError};
 #[cfg(feature = "lineage")]
@@ -63,6 +66,7 @@ pub struct OptimizedModel<
     key: K,
     cache: Ca,
     validator: V,
+    cost_model: Option<Arc<dyn CostModel>>,
 }
 
 impl<M: DispatchModel> OptimizedModel<M> {
@@ -76,6 +80,7 @@ impl<M: DispatchModel> OptimizedModel<M> {
             key: DefaultCacheKey,
             cache: NoCache,
             validator: AcceptAllValidator,
+            cost_model: None,
         }
     }
 }
@@ -93,6 +98,25 @@ where
     #[must_use]
     pub fn inner(&self) -> &M {
         &self.model
+    }
+
+    /// Resolve the USD cost for a call: a per-call override on `options` wins,
+    /// otherwise the configured [`CostModel`], otherwise `None`.
+    fn estimate_cost(
+        &self,
+        model: Option<&str>,
+        usage: &rig::completion::Usage,
+        options: &TokudoOptions,
+    ) -> Option<CostBreakdown> {
+        if let Some(usd_actual) = options.usd_actual_estimate {
+            return Some(CostBreakdown {
+                usd_actual,
+                provider_cache_usd_delta: options.provider_cache_usd_delta.unwrap_or(0.0),
+            });
+        }
+        self.cost_model
+            .as_ref()
+            .and_then(|cm| cm.estimate(model, usage))
     }
 
     /// Run the optimized completion flow.
@@ -116,9 +140,9 @@ where
             let cached: CachedCompletionResponse<M::Response> =
                 serde_json::from_value(entry.response.clone())
                     .map_err(|e| TokudoError::Cache(format!("deserialize cached response: {e}")))?;
-            let usd_baseline_estimate = estimate_actual_usd(model_name.as_deref(), &cached.usage);
-            let provider_cache_usd_delta =
-                estimate_provider_cache_usd_delta(model_name.as_deref(), &cached.usage);
+            let baseline = self.estimate_cost(model_name.as_deref(), &cached.usage, &options);
+            let usd_baseline_estimate = baseline.map(|b| b.usd_actual);
+            let provider_cache_usd_delta = baseline.map(|b| b.provider_cache_usd_delta);
             observe::emit(&TokudoEvent::CacheHit {
                 cache_key: cache_key.clone(),
                 source_id: entry.source_id.clone(),
@@ -196,9 +220,9 @@ where
             provenance.router_choice = route;
         }
 
-        let usd_actual_estimate = estimate_actual_usd(model_name.as_deref(), &resp.usage);
-        let provider_cache_usd_delta =
-            estimate_provider_cache_usd_delta(model_name.as_deref(), &resp.usage);
+        let breakdown = self.estimate_cost(model_name.as_deref(), &resp.usage, &options);
+        let usd_actual_estimate = breakdown.map(|b| b.usd_actual);
+        let provider_cache_usd_delta = breakdown.map(|b| b.provider_cache_usd_delta);
         provenance.usd_actual_estimate = usd_actual_estimate;
         provenance.usd_baseline_estimate = usd_actual_estimate;
         provenance.provider_cached_input_tokens = resp.usage.cached_input_tokens;
@@ -251,32 +275,6 @@ where
     }
 }
 
-#[cfg(feature = "model-catalog")]
-fn estimate_actual_usd(model: Option<&str>, usage: &rig::completion::Usage) -> Option<f64> {
-    crate::pricing::estimate_actual_usd(model, usage)
-}
-
-#[cfg(feature = "model-catalog")]
-fn estimate_provider_cache_usd_delta(
-    model: Option<&str>,
-    usage: &rig::completion::Usage,
-) -> Option<f64> {
-    crate::pricing::estimate_provider_cache_usd_delta(model, usage)
-}
-
-#[cfg(not(feature = "model-catalog"))]
-fn estimate_actual_usd(_model: Option<&str>, _usage: &rig::completion::Usage) -> Option<f64> {
-    None
-}
-
-#[cfg(not(feature = "model-catalog"))]
-fn estimate_provider_cache_usd_delta(
-    _model: Option<&str>,
-    _usage: &rig::completion::Usage,
-) -> Option<f64> {
-    None
-}
-
 /// Builder for [`OptimizedModel`].
 ///
 /// Each `with_*` method takes ownership and returns a new builder with the
@@ -295,6 +293,7 @@ pub struct OptimizedModelBuilder<
     key: K,
     cache: Ca,
     validator: V,
+    cost_model: Option<Arc<dyn CostModel>>,
 }
 
 impl<M, R, C, K, Ca, V> OptimizedModelBuilder<M, R, C, K, Ca, V> {
@@ -307,6 +306,7 @@ impl<M, R, C, K, Ca, V> OptimizedModelBuilder<M, R, C, K, Ca, V> {
             key: self.key,
             cache: self.cache,
             validator: self.validator,
+            cost_model: self.cost_model,
         }
     }
 
@@ -322,6 +322,7 @@ impl<M, R, C, K, Ca, V> OptimizedModelBuilder<M, R, C, K, Ca, V> {
             key: self.key,
             cache: self.cache,
             validator: self.validator,
+            cost_model: self.cost_model,
         }
     }
 
@@ -337,6 +338,7 @@ impl<M, R, C, K, Ca, V> OptimizedModelBuilder<M, R, C, K, Ca, V> {
             key,
             cache: self.cache,
             validator: self.validator,
+            cost_model: self.cost_model,
         }
     }
 
@@ -349,6 +351,7 @@ impl<M, R, C, K, Ca, V> OptimizedModelBuilder<M, R, C, K, Ca, V> {
             key: self.key,
             cache,
             validator: self.validator,
+            cost_model: self.cost_model,
         }
     }
 
@@ -364,7 +367,19 @@ impl<M, R, C, K, Ca, V> OptimizedModelBuilder<M, R, C, K, Ca, V> {
             key: self.key,
             cache: self.cache,
             validator,
+            cost_model: self.cost_model,
         }
+    }
+
+    /// Plug in a host-supplied [`CostModel`] for USD cost estimates.
+    ///
+    /// Without one (and without a per-call
+    /// [`TokudoOptions::with_cost_estimate`](crate::TokudoOptions::with_cost_estimate)
+    /// override) tokudo reports token counts only and leaves USD fields `None`.
+    #[must_use]
+    pub fn with_cost_model(mut self, cost_model: impl CostModel + 'static) -> Self {
+        self.cost_model = Some(Arc::new(cost_model));
+        self
     }
 
     /// Finalize into an [`OptimizedModel`].
@@ -377,6 +392,7 @@ impl<M, R, C, K, Ca, V> OptimizedModelBuilder<M, R, C, K, Ca, V> {
             key: self.key,
             cache: self.cache,
             validator: self.validator,
+            cost_model: self.cost_model,
         }
     }
 }

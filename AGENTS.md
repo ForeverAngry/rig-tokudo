@@ -14,6 +14,7 @@ v0.1 surface:
   ([src/cache/](src/cache/), Phase 2).
 - `Router` / `Validator` traits + `StaticCascade` ([src/route/](src/route/), Phase 4).
 - `Compressor` trait + `NoCompressor` + `JsonKeyPruner` ([src/compress/](src/compress/), Phase 3).
+- `CostModel` trait + `CostBreakdown` ([src/cost.rs](src/cost.rs)) — host-supplied USD estimates; tokudo owns no pricing data.
 - `Provenance` + `NormalizedResponse` ([src/provenance.rs](src/provenance.rs)).
 - `TokudoOptions` per-request controls ([src/options.rs](src/options.rs)).
 
@@ -36,11 +37,15 @@ v0.1 surface:
 
 ## Feature flags
 
-Default = `["tap", "model-catalog"]` since Phase 5 shipped. Other optional
-features: `cache-semantic`,
-`cache-memvid`, `compress-llmlingua`, `route-predictive`, `lineage`, `eval`.
-Gate optional code with `#[cfg(feature = "...")]`. Once Phases 5 and 6 land,
-`tap` and `model-catalog` move into the default set.
+Default = `["tap"]`. Other optional features: `cache-semantic`,
+`cache-memvid`, `cache-foyer`, `compress-llmlingua`, `route-predictive`,
+`lineage`, `eval`. Gate optional code with `#[cfg(feature = "...")]`.
+
+USD cost estimation is **not** a feature flag: tokudo owns no pricing data.
+Hosts supply a [`CostModel`](src/cost.rs) via `with_cost_model(..)` or a
+per-call literal via `TokudoOptions::with_cost_estimate(..)`. The
+`measure_savings` example demonstrates a `rig-model-catalog`-backed
+`CostModel` (a dev-dependency, not a library dependency).
 
 ## Validation
 

@@ -12,7 +12,6 @@ categories = ["api-bindings", "caching"]
 
 [[example]]
 name = "measure_savings"
-required-features = ["model-catalog"]
 
 [dependencies]
 rig = { package = "rig-core", version = "0.37.0", default-features = false }
@@ -27,7 +26,6 @@ regex = "1"
 # Optional ecosystem integrations. Local path deps for in-tree development;
 # `version` is honored on publish.
 rig-tap = { version = "0.1", optional = true }
-rig-model-catalog = { version = "0.1", optional = true, default-features = false, features = ["pricing"] }
 rig-memvid = { version = "0.4", optional = true, default-features = false, features = ["lex"] }
 rig-retrieval-evals = { version = "0.2", optional = true, default-features = false }
 foyer-memory = { version = "0.22.3", optional = true }
@@ -36,18 +34,19 @@ foyer-memory = { version = "0.22.3", optional = true }
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 proptest = "1.5"
 tracing-subscriber = { version = "0.3", default-features = false, features = ["registry", "fmt"] }
+# Used only by the `measure_savings` example to demonstrate a catalog-backed
+# `CostModel`; the library itself owns no pricing data.
+rig-model-catalog = { version = "0.1", default-features = false, features = ["pricing"] }
 
 [features]
-# Default-on observability and pricing align the decorator with the
-# companion-crate stack: `tap` adds rig_tap-compatible scalar fields, and
-# `model-catalog` fills USD estimates from the bundled pricing catalog.
-default = ["tap", "model-catalog"]
+# Default-on observability aligns the decorator with the companion-crate
+# stack: `tap` adds rig_tap-compatible scalar fields on every call. USD cost
+# estimates are host-supplied via `CostModel` / `TokudoOptions`, so no pricing
+# dependency is pulled in by default.
+default = ["tap"]
 
 # Observability: emit ObservabilityEvent via rig-tap on every call.
 tap = ["dep:rig-tap"]
-
-# Pull tokenizer + pricing data from rig-model-catalog for USD cost estimates.
-model-catalog = ["dep:rig-model-catalog"]
 
 # Semantic cache backed by any rig VectorStoreIndexDyn.
 cache-semantic = []

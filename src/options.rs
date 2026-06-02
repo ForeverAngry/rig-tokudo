@@ -42,6 +42,17 @@ pub struct TokudoOptions {
     pub bypass_router: bool,
     /// When `true`, skip the compressor for this call.
     pub bypass_compress: bool,
+    /// Host-supplied USD cost actually billed for this call.
+    ///
+    /// When set, it overrides any configured
+    /// [`crate::cost::CostModel`] for this call; tokudo records the value
+    /// verbatim on telemetry and [`crate::Provenance`].
+    pub usd_actual_estimate: Option<f64>,
+    /// Host-supplied provider-side cache USD delta for this call.
+    ///
+    /// Only consulted when [`Self::usd_actual_estimate`] is set; defaults to
+    /// `0.0` otherwise.
+    pub provider_cache_usd_delta: Option<f64>,
 }
 
 impl TokudoOptions {
@@ -76,6 +87,24 @@ impl TokudoOptions {
     #[must_use]
     pub fn with_bypass_compress(mut self) -> Self {
         self.bypass_compress = true;
+        self
+    }
+
+    /// Supply the USD cost billed for this call.
+    ///
+    /// Overrides any configured [`crate::cost::CostModel`] for this call only.
+    #[must_use]
+    pub fn with_cost_estimate(mut self, usd_actual: f64) -> Self {
+        self.usd_actual_estimate = Some(usd_actual);
+        self
+    }
+
+    /// Supply the provider-side cache USD delta for this call.
+    ///
+    /// Only takes effect alongside [`Self::with_cost_estimate`].
+    #[must_use]
+    pub fn with_provider_cache_usd_delta(mut self, delta: f64) -> Self {
+        self.provider_cache_usd_delta = Some(delta);
         self
     }
 }

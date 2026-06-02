@@ -3,7 +3,7 @@
 //! See the [README](https://github.com/ForeverAngry/rig-tokudo) and the
 //! `AGENTS.md` companion file for project conventions. The crate ships
 //! the [`OptimizedModel`] decorator and its supporting cache, compression,
-//! routing, observability, pricing, and measurement surfaces.
+//! routing, observability, cost-estimation, and measurement surfaces.
 //!
 //! # Decorator pillars
 //!
@@ -17,6 +17,7 @@
 
 pub mod cache;
 pub mod compress;
+pub mod cost;
 pub mod dispatch;
 pub mod error;
 #[cfg(feature = "lineage")]
@@ -24,8 +25,6 @@ pub mod lineage;
 pub mod model;
 pub mod observe;
 pub mod options;
-#[cfg(feature = "model-catalog")]
-pub mod pricing;
 pub mod provenance;
 #[cfg(feature = "eval")]
 pub mod quality;
@@ -45,6 +44,7 @@ pub use cache::{SemanticCache, SemanticCacheConfig, SemanticCacheKey};
 pub use compress::{JsonKeyPruner, JsonKeyPrunerConfig};
 #[cfg(feature = "compress-llmlingua")]
 pub use compress::{LlmlinguaCompressor, LlmlinguaConfig};
+pub use cost::{CostBreakdown, CostModel};
 pub use dispatch::{DispatchModel, DispatchOutcome};
 pub use error::{Result, TokudoError};
 #[cfg(feature = "lineage")]
@@ -52,10 +52,6 @@ pub use lineage::{LineageEdge, LineageRelation};
 pub use model::{OptimizedModel, OptimizedModelBuilder};
 pub use observe::{TokudoEnvelope, TokudoEvent};
 pub use options::{CachePolicy, TokudoOptions};
-#[cfg(feature = "model-catalog")]
-pub use pricing::{
-    ResolvedPrice, estimate_actual_usd, estimate_provider_cache_usd_delta, resolve_price,
-};
 #[cfg(feature = "lineage")]
 pub use provenance::{NormalizedResponse, Provenance, RouterChoice};
 #[cfg(not(feature = "lineage"))]
